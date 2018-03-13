@@ -24,7 +24,7 @@ OrderedSinglyLinkedList *ordered_singly_insert(OrderedSinglyLinkedList *osll, in
 
     if (osll == NULL || osll->data >= data) {
         new_element->next = osll;
-        osll = new_element;
+        osll              = new_element;
     } else {
         OrderedSinglyLinkedList *osll_current = osll->next, *osll_previous = osll;
 
