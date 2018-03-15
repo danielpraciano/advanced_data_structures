@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <circular_singly_linked_list.h>
+#include <lists/circular_singly_linked_list.h>
 
 
 struct list {

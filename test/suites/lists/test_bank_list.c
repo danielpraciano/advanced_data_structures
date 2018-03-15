@@ -2,11 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <bank_ordered_singly_linked_list.h>
+#include <lists/bank_ordered_singly_linked_list.h>
 
-#include <bank_account.h>
-#include <savings_account.h>
-#include <loyalty_account.h>
+#include <lists/bank_account.h>
+#include <lists/savings_account.h>
+#include <lists/loyalty_account.h>
 
 
 int main(int argc, char *argv[]) {

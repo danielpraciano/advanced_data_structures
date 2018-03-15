@@ -1,9 +1,9 @@
 file(GLOB_RECURSE LibHeaders "./*.h")
 file(GLOB_RECURSE LibSources "./*.c")
-add_library(list SHARED ${LibSources} ${LibHeaders})
+add_library(adv_ds SHARED ${LibSources} ${LibHeaders})
 
 target_include_directories(
-    list PRIVATE
+    adv_ds PRIVATE
     "${CoreDir}/include"
     "${CoreDir}/source"
 )

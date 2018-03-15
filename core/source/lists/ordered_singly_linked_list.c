@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <ordered_singly_linked_list.h>
+#include <lists/ordered_singly_linked_list.h>
 
 
 struct list {

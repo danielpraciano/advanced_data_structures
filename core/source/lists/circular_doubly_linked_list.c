@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <circular_doubly_linked_list.h>
+#include <lists/circular_doubly_linked_list.h>
 
 
 struct list {

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <bank_account.h>
-#include <savings_account.h>
-#include <loyalty_account.h>
+#include <lists/bank_account.h>
+#include <lists/savings_account.h>
+#include <lists/loyalty_account.h>
 
 typedef struct list BankOrderedSinglyLinkedList;
 typedef union  account Account;
