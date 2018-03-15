@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <bank_account.h>
+#include <lists/bank_account.h>
 
 
 //struct bankaccount {
