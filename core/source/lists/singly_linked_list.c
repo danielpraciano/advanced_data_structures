@@ -11,6 +11,12 @@ struct list {
 };
 
 
+void* singly_get_datum(const SinglyLinkedList *const sll) {
+    assert (sll != NULL);
+
+    return sll->datum;
+}
+
 SinglyLinkedList *singly_create() {
     return NULL;
 }
@@ -63,35 +69,35 @@ int singly_is_empty(const SinglyLinkedList *const sll) {
     return sll == NULL;
 }
 
-//SinglyLinkedList *singly_search(const SinglyLinkedList *const sll, void *datum) {
-//    const SinglyLinkedList *sll_to_search = (const SinglyLinkedList*) sll;
+SinglyLinkedList *singly_search(const SinglyLinkedList *const sll, compare_function compare, void *datum) {
+    const SinglyLinkedList *sll_to_search = (const SinglyLinkedList*) sll;
 
-//    while (sll_to_search != NULL && sll_to_search->datum != datum)
-//        sll_to_search = sll_to_search->next;
+    while (sll_to_search != NULL && compare(sll_to_search->datum, datum) != 0)
+        sll_to_search = sll_to_search->next;
 
-//    return (SinglyLinkedList*) sll_to_search;
-//}
+    return (SinglyLinkedList*) sll_to_search;
+}
 
-//SinglyLinkedList *singly_iterative_remove(SinglyLinkedList *sll, void *datum) {
-//    SinglyLinkedList *sll_to_remove = sll, *sll_to_remove_before = NULL;
+SinglyLinkedList *singly_iterative_remove(SinglyLinkedList *sll, compare_function compare, void *datum) {
+    SinglyLinkedList *sll_to_remove = sll, *sll_to_remove_before = NULL;
 
-//    while (sll_to_remove != NULL && sll_to_remove->data != datum) {
-//        sll_to_remove_before = sll_to_remove;
-//        sll_to_remove = sll_to_remove->next;
-//    }
+    while (sll_to_remove != NULL && compare(sll_to_remove->datum, datum) != 0) {
+        sll_to_remove_before = sll_to_remove;
+        sll_to_remove = sll_to_remove->next;
+    }
 
-//    if (sll_to_remove != NULL) {
-//        if (sll_to_remove_before == NULL) {
-//            sll = sll_to_remove->next;
-//        } else {
-//            sll_to_remove_before->next = sll_to_remove->next;
-//        }
+    if (sll_to_remove != NULL) {
+        if (sll_to_remove_before == NULL) {
+            sll = sll_to_remove->next;
+        } else {
+            sll_to_remove_before->next = sll_to_remove->next;
+        }
 
-//        free(sll_to_remove);
-//    }
+        free(sll_to_remove);
+    }
 
-//    return sll;
-//}
+    return sll;
+}
 
 //SinglyLinkedList *singly_recursive_remove(SinglyLinkedList *sll, void *datum) {
 //    if (sll == NULL)
@@ -109,13 +115,13 @@ int singly_is_empty(const SinglyLinkedList *const sll) {
 //    return sll;
 //}
 
-//void singly_free(SinglyLinkedList *sll) {
-//    SinglyLinkedList *sll_to_free = sll;
+void singly_free(SinglyLinkedList *sll) {
+    SinglyLinkedList *sll_to_free = sll;
 
-//    while (sll_to_free != NULL) {
-//        sll = sll_to_free->next;
+    while (sll_to_free != NULL) {
+        sll = sll_to_free->next;
 
-//        free(sll_to_free);
-//        sll_to_free = sll;
-//    }
-//}
+        free(sll_to_free);
+        sll_to_free = sll;
+    }
+}
