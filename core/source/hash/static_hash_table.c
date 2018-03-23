@@ -69,8 +69,11 @@ void sht_insert(StaticHashTable *sht, const void *const key, const void *const v
 
     Entry *entry = malloc(sizeof(Entry));
 
-    entry->key   = key;
-    entry->value = value;
+//    entry->key   = key;
+//    entry->value = value;
+
+    entry->key   = (void*) key;
+    entry->value = (void*) value;
 
     sht->entries[hash_key] = singly_insert(list, (void*) entry);
 }
@@ -83,7 +86,8 @@ const void *const sht_search(const StaticHashTable *const sht, const void *const
 
     SinglyLinkedList *list = sht->entries[hash_key];
 
-    SinglyLinkedList *element = singly_search(list, sht->compare_f, key);
+//    SinglyLinkedList *element = singly_search(list, sht->compare_f, key);
+    SinglyLinkedList *element = singly_search(list, sht->compare_f, (void*) key);
 
 //    while (element != NULL) {
 //        sht_get_key(singly_get_datum(element));
@@ -97,7 +101,8 @@ const void *const sht_search(const StaticHashTable *const sht, const void *const
 }
 
 void sht_remove(StaticHashTable *sht, const void *const key) {
-    void *value = sht_search(sht, key);
+//    void *value = sht_search(sht, key);
+    void *value = (void*) sht_search(sht, (void*) key);
 
     if (value != NULL) {
         int32_t hash_key = (*(sht->hash_f))(sht, key);

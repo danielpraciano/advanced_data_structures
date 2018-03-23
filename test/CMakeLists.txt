@@ -5,6 +5,7 @@ foreach(FileName ${TestSources})
     get_filename_component(TestName ${FileName} NAME_WE)
     add_executable(${TestName} ${FileName} ${TestHeaders})
     target_link_libraries(${TestName} adv_ds)
+    target_link_libraries(${TestName} m)
 
     target_include_directories(
         ${TestName} PRIVATE
