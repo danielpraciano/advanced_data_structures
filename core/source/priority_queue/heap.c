@@ -47,7 +47,22 @@ void heap_double(Heap *const heap) {
     heap->max_size_ = new_size;
 }
 
-void heapify_up(Heap *const heap, size_t index) {
+void min_heapify_up(Heap *const heap, size_t index) {
+    assert(heap != NULL);
+
+    size_t parent = PARENT(index);
+
+    if (parent < heap->size_ && heap->entries_[index]->priority_ < heap->entries_[parent]->priority_) {
+        Entry *entry_index            = heap->entries_[index];
+
+        heap->entries_[index]         = heap->entries_[parent];
+        heap->entries_[parent] = entry_index;
+
+        min_heapify_up(heap, parent);
+    }
+}
+
+void max_heapify_up(Heap *const heap, size_t index) {
     assert(heap != NULL);
 
     size_t parent = PARENT(index);
@@ -58,11 +73,34 @@ void heapify_up(Heap *const heap, size_t index) {
         heap->entries_[index]         = heap->entries_[parent];
         heap->entries_[parent] = entry_index;
 
-        heapify_up(heap, parent);
+        max_heapify_up(heap, parent);
     }
 }
 
-void heapify_down(Heap *const heap, size_t index) {
+void min_heapify_down(Heap *const heap, size_t index) {
+    assert(heap != NULL);
+
+    size_t smallest  = index;
+    size_t left     = LEFT(index);
+    size_t right    = RIGHT(index);
+
+    if (left < heap->size_ && heap->entries_[left]->priority_ < heap->entries_[smallest]->priority_)
+        smallest = left;
+
+    if (right < heap->size_ && heap->entries_[right]->priority_ < heap->entries_[smallest]->priority_)
+        smallest = right;
+
+    if (smallest != index) {
+        Entry *entry_index      = heap->entries_[index];
+
+        heap->entries_[index]   = heap->entries_[smallest];
+        heap->entries_[smallest] = entry_index;
+
+        min_heapify_down(heap, smallest);
+    }
+}
+
+void max_heapify_down(Heap *const heap, size_t index) {
     assert(heap != NULL);
 
     size_t largest  = index;
@@ -81,7 +119,7 @@ void heapify_down(Heap *const heap, size_t index) {
         heap->entries_[index]   = heap->entries_[largest];
         heap->entries_[largest] = entry_index;
 
-        heapify_down(heap, largest);
+        max_heapify_down(heap, largest);
     }
 }
 
@@ -108,7 +146,10 @@ void heap_push(Heap *const heap, int64_t priority, const void *const value, size
 
     new_index = heap->size_++;
 
-    heapify_up(heap, new_index);
+    if (heap->type_ == MIN_HEAP)
+        min_heapify_up(heap, new_index);
+    else
+        max_heapify_up(heap, new_index);
 }
 
 void heap_update_priority(Heap *const heap, int64_t current_priority, int64_t new_priority) {
@@ -119,10 +160,17 @@ void heap_update_priority(Heap *const heap, int64_t current_priority, int64_t ne
     if (index < heap->size_) {
         heap->entries_[index]->priority_ = new_priority;
 
-        if (new_priority > current_priority)
-            heapify_up(heap, index);
-        else
-            heapify_down(heap, index);
+        if (heap->type_ == MIN_HEAP) {
+            if (new_priority > current_priority)
+                min_heapify_down(heap, index);
+            else
+                min_heapify_up(heap, index);
+        } else {
+            if (new_priority > current_priority)
+                max_heapify_up(heap, index);
+            else
+                max_heapify_down(heap, index);
+        }
     }
 
 }
@@ -152,7 +200,10 @@ void* heap_pop(Heap *const heap) {
 
         heap->entries_[0] = heap->entries_[--(heap->size_)];
 
-        heapify_down(heap, 0);
+        if (heap->type_ == MIN_HEAP)
+            min_heapify_down(heap, 0);
+        else
+            max_heapify_down(heap, 0);
     }
 
     return value;
