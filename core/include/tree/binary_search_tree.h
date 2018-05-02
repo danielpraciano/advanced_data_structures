@@ -18,14 +18,18 @@ Node* _search(Node *root, int64_t key);
 
 const void *const bst_search(const BinarySearchTree *const bst, int64_t key);
 
+void _remove(Node *root, int64_t key);
+
 void bst_remove(BinarySearchTree *const bst, int64_t key);
 
-Node* _successor(const BinarySearchTree *const bst, int64_t key);
+Node* _successor(const Node *const node);
 
-int64_t bst_successor(const BinarySearchTree *const bst, int64_t key);
+int64_t* bst_successor(const BinarySearchTree *const bst, int64_t key);
 
 void pre_order_visit(BinarySearchTree *bst, callback_function_ptr callback_f_ptr);
 void  in_order_visit(BinarySearchTree *bst, callback_function_ptr callback_f_ptr);
 void pos_order_visit(BinarySearchTree *bst, callback_function_ptr callback_f_ptr);
+
+void node_free(Node *node);
 
 void bst_free(BinarySearchTree *bst);

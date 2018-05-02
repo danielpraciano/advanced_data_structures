@@ -12,7 +12,7 @@ struct bst_entry {
 
 struct bst_node {
     Entry entry_;
-    Node *parent, *left_, *right_;
+    Node *parent, *left, *right;
 };
 
 struct bst_t {
@@ -49,21 +49,21 @@ void bst_insert(BinarySearchTree *const bst, int64_t key, const void *const valu
 
     node->entry_ = entry;
     node->parent = NULL;
-    node->left_  = NULL;
-    node->right_ = NULL;
+    node->left   = NULL;
+    node->right  = NULL;
 
     Node *parent = _search(bst->root_, key);
 
     if (parent == NULL) {
         bst->root_ = node;
     } else if (key <= parent->entry_.key_) {
-        assert(node->parent->left_ == NULL && node->parent->right_ == NULL); //TIRAR
+        assert(node->parent->left == NULL && node->parent->right == NULL); //TIRAR
         node->parent = parent;
-        parent->left_ = node;
+        parent->left = node;
     } else {
-        assert(node->parent->left_ == NULL && node->parent->right_ == NULL); //TIRAR
-        node->parent   = parent;
-        parent->right_ = node;
+        assert(node->parent->left == NULL && node->parent->right == NULL); //TIRAR
+        node->parent  = parent;
+        parent->right = node;
     }
 }
 
@@ -74,9 +74,9 @@ Node* _search(Node *root, int64_t key) {
         parent = node;
 
         if (key < node->entry_.key_)
-            node = node->left_;
+            node = node->left;
         else
-            node = node->right_;
+            node = node->right;
     }
 
     return node != NULL ? node : parent;
@@ -93,53 +93,107 @@ const void *const bst_search(const BinarySearchTree *const bst, int64_t key) {
     return NULL;
 }
 
+void _remove(Node *root, int64_t key) {
+    Node *node = _search(root, key);
+
+    if (node != NULL && node->entry_.key_ == key) {
+        if (node->left == NULL && node->right == NULL) {
+            if (node->parent == NULL) {
+                bst->root_ = NULL; //IT'S NECESSARY MODIFIER THE POINTER OF ROOT IN THE BST, I THINK RETHINKING ALL!!!
+            } else {
+
+            }
+            if (node == node->parent->left)
+                node->parent->left  = NULL;
+            else
+                node->parent->right = NULL;
+        } else if (node->left != NULL && node->right == NULL) {
+            node->left->parent  = node->parent;
+
+            if (node == node->parent->left)
+                node->parent->left  = node->left;
+            else
+                node->parent->right = node->left;
+        } else if (node->left == NULL && node->right != NULL) {
+            node->right->parent  = node->parent;
+
+            if (node == node->parent->left)
+                node->parent->left  = node->right;
+            else
+                node->parent->right = node->right;
+        } else {
+            void *removed_value = node->entry_.value_;
+            Node *succ = _successor(node);
+            assert(succ != NULL);
+
+            node->entry_.key_   = succ->entry_.key_;
+            node->entry_.value_ = succ->entry_.value_;
+
+            succ->entry_.value_ = removed_value;
+
+            _remove(node->right, key);
+
+            node = NULL;
+        }
+
+        node_free(node);
+    }
+}
+
 void bst_remove(BinarySearchTree *const bst, int64_t key) {
     assert(bst != NULL);
 
-    Node *node = _search(bst->root_, key);
-
-    if (node != NULL && node->entry_.key_ == key) {
-        if (node->left_ == NULL && node->right_ == NULL) {
-            if (node == node->parent->left_)
-                node->parent->left_  = NULL;
-            else
-                node->parent->right_ = NULL;
-        } else if (node->left_ != NULL && node->right_ == NULL) {
-            node->left_->parent  = node->parent;
-
-            if (node == node->parent->left_)
-                node->parent->left_  = node->left_;
-            else
-                node->parent->right_ = node->left_;
-        } else if (node->left_ == NULL && node->right_ != NULL) {
-            node->right_->parent  = node->parent;
-
-            if (node == node->parent->left_)
-                node->parent->left_  = node->right_;
-            else
-                node->parent->right_ = node->right_;
-        } else {
-            //FALTA tratar caso quando os dois nao sao nulos, ie, existem 2 filhos!!!
-        }
-
-
-        if (node->parent == NULL) {
-            bst->root_ = NULL;
-        } else {
-
-        }
-    }
-
+    _remove(bst->root_, key);
 }
 
-void eht_remove(ExtensibleHashTable *eht, const void *const key) {
-    const void *value = eht_search(eht, key);
+Node* _successor(const Node *const node) {
+    Node *succ = NULL;
 
-    if (value != NULL) {
-        int32_t hash_key   = (*(eht->hash_f_))(eht, key);
-        int32_t bckt_index = get_k_LSB(hash_key, eht->directory_.global_depth_);
+    if (node == NULL)
+        return NULL;
 
-        bckt_remove(eht->directory_.buckets_[bckt_index], eht->compare_f_, key);
+    succ = node->right;
+
+    if (succ != NULL) {
+        while (succ->left != NULL)
+            succ = succ->left;
+    } else {
+        Node *parent = node->parent, *child = node;
+
+        while (parent != NULL && child == parent->right) {
+           child = parent;
+           parent = child->parent;
+        }
+
+        succ = parent;
+    }
+
+    return succ;
+}
+
+int64_t* bst_successor(const BinarySearchTree *const bst, int64_t key) {
+    assert(bst != NULL);
+
+    int64_t *result = NULL;
+    Node *node = _search(bst->root_, key);
+    Node *succ = _successor(node);
+
+    if (succ != NULL) {
+        result = (int64_t*) malloc(sizeof(int64_t));
+        assert(result != NULL);
+
+        *result = succ->entry_.key_;
+    }
+
+    return result;
+}
+
+void node_free(Node *node) {
+    if (node != NULL) {
+        if (node->entry_.value_ != NULL)
+            free(node->entry_.value_);
+
+        free(node);
     }
 }
 
