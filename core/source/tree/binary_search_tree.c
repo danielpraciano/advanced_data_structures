@@ -1,6 +1,7 @@
 #include <tree/binary_search_tree.h>
 
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -11,7 +12,7 @@ struct bst_entry {
 };
 
 struct bst_node {
-    Entry entry_;
+    Entry *entry_;
     Node *parent, *left, *right;
 };
 
@@ -56,12 +57,10 @@ void bst_insert(BinarySearchTree *const bst, int64_t key, const void *const valu
 
     if (parent == NULL) {
         bst->root_ = node;
-    } else if (key <= parent->entry_.key_) {
-        assert(node->parent->left == NULL && node->parent->right == NULL); //TIRAR
+    } else if (key <= parent->entry_->key_) {
         node->parent = parent;
         parent->left = node;
     } else {
-        assert(node->parent->left == NULL && node->parent->right == NULL); //TIRAR
         node->parent  = parent;
         parent->right = node;
     }
@@ -70,10 +69,10 @@ void bst_insert(BinarySearchTree *const bst, int64_t key, const void *const valu
 Node* _search(Node *root, int64_t key) {
     Node *parent = NULL, *node = root;
 
-    while (node != NULL && node->entry_.key_ != key) {
+    while (node != NULL && node->entry_->key_ != key) {
         parent = node;
 
-        if (key < node->entry_.key_)
+        if (key < node->entry_->key_)
             node = node->left;
         else
             node = node->right;
@@ -87,51 +86,58 @@ const void *const bst_search(const BinarySearchTree *const bst, int64_t key) {
 
     Node *node = _search(bst->root_, key);
 
-    if (node != NULL && node->entry_.key_ == key)
-        return (const void *const) node->entry_.value_;
+    if (node != NULL && node->entry_->key_ == key)
+        return (const void *const) node->entry_->value_;
 
     return NULL;
 }
 
-void _remove(Node *root, int64_t key) {
-    Node *node = _search(root, key);
+void _remove(Node **root, int64_t key) {
+    Node *node = _search(*root, key);
 
-    if (node != NULL && node->entry_.key_ == key) {
+    if (node != NULL && node->entry_->key_ == key) {
         if (node->left == NULL && node->right == NULL) {
             if (node->parent == NULL) {
-                bst->root_ = NULL; //IT'S NECESSARY MODIFIER THE POINTER OF ROOT IN THE BST, I THINK RETHINKING ALL!!!
+                root = NULL;
             } else {
-
+                if (node == node->parent->left)
+                    node->parent->left  = NULL;
+                else
+                    node->parent->right = NULL;
             }
-            if (node == node->parent->left)
-                node->parent->left  = NULL;
-            else
-                node->parent->right = NULL;
         } else if (node->left != NULL && node->right == NULL) {
             node->left->parent  = node->parent;
 
-            if (node == node->parent->left)
-                node->parent->left  = node->left;
-            else
-                node->parent->right = node->left;
+            if (node->parent == NULL) {
+                root = &node->left;
+            } else {
+                if (node == node->parent->left)
+                    node->parent->left  = node->left;
+                else
+                    node->parent->right = node->left;
+            }
         } else if (node->left == NULL && node->right != NULL) {
             node->right->parent  = node->parent;
 
-            if (node == node->parent->left)
-                node->parent->left  = node->right;
-            else
-                node->parent->right = node->right;
+            if (node->parent == NULL) {
+                root = &node->right;
+            } else {
+                if (node == node->parent->left)
+                    node->parent->left  = node->right;
+                else
+                    node->parent->right = node->right;
+            }
         } else {
-            void *removed_value = node->entry_.value_;
+            void *removed_value = node->entry_->value_;
             Node *succ = _successor(node);
             assert(succ != NULL);
 
-            node->entry_.key_   = succ->entry_.key_;
-            node->entry_.value_ = succ->entry_.value_;
+            node->entry_->key_   = succ->entry_->key_;
+            node->entry_->value_ = succ->entry_->value_;
 
-            succ->entry_.value_ = removed_value;
+            succ->entry_->value_ = removed_value;
 
-            _remove(node->right, key);
+            _remove(&succ, succ->entry_->key_);
 
             node = NULL;
         }
@@ -143,7 +149,7 @@ void _remove(Node *root, int64_t key) {
 void bst_remove(BinarySearchTree *const bst, int64_t key) {
     assert(bst != NULL);
 
-    _remove(bst->root_, key);
+    _remove(&bst->root_, key);
 }
 
 Node* _successor(const Node *const node) {
@@ -158,7 +164,7 @@ Node* _successor(const Node *const node) {
         while (succ->left != NULL)
             succ = succ->left;
     } else {
-        Node *parent = node->parent, *child = node;
+        Node *parent = node->parent, *child = (Node*) node;
 
         while (parent != NULL && child == parent->right) {
            child = parent;
@@ -182,50 +188,72 @@ int64_t* bst_successor(const BinarySearchTree *const bst, int64_t key) {
         result = (int64_t*) malloc(sizeof(int64_t));
         assert(result != NULL);
 
-        *result = succ->entry_.key_;
+        *result = succ->entry_->key_;
     }
 
     return result;
 }
 
+void pre_recursive_print(const Node *const node) {
+    if (node != NULL) {
+        printf("%d ", node->entry_->key_);
+        pre_recursive_print(node->left);
+        pre_recursive_print(node->right);
+    }
+}
+
+void bst_pre_order_print(const BinarySearchTree *const bst) {
+    printf("\n Keys in pre-order: ");
+    pre_recursive_print(bst->root_);
+    printf("\n");
+}
+
+void in_recursive_print(const Node *const node) {
+    if (node != NULL) {
+        in_recursive_print(node->left);
+        printf("%d ", node->entry_->key_);
+        in_recursive_print(node->right);
+    }
+}
+
+void  bst_in_order_print(const BinarySearchTree *const bst) {
+    printf("\n Keys in-order: ");
+    in_recursive_print(bst->root_);
+    printf("\n");
+}
+
+void pos_recursive_print(const Node *const node) {
+    if (node != NULL) {
+        pos_recursive_print(node->left);
+        pos_recursive_print(node->right);
+        printf("%d ", node->entry_->key_);
+    }
+}
+
+void bst_pos_order_print(const BinarySearchTree *const bst) {
+    printf("\n Keys in pos-order:");
+    pos_recursive_print(bst->root_);
+    printf("\n");
+}
+
 void node_free(Node *node) {
     if (node != NULL) {
-        if (node->entry_.value_ != NULL)
-            free(node->entry_.value_);
+        if (node->entry_->value_ != NULL)
+            free(node->entry_->value_);
 
+        free(node->entry_);
         free(node);
     }
 }
 
-void bckt_free(Bucket *bckt) {
-    int i;
-
-    assert (bckt != NULL);
-
-    for (i = 0; i < bckt->amount_; i++)
-        free(bckt->entries_[i]);
-
-    free(bckt->entries_);
-    free(bckt);
-}
-
-void eht_free(ExtensibleHashTable *eht) {
-    int i;
-
-    assert (eht != NULL);
-
-    for (i = 0; i < (int) pow(2, eht->directory_.global_depth_); i++) {
-        if (eht->directory_.buckets_[i] != NULL) {
-            int index = ((int) pow(2, eht->directory_.global_depth_ - 1)) + i;
-
-            if (index < (int) pow(2, eht->directory_.global_depth_) && eht->directory_.buckets_[i] == eht->directory_.buckets_[index])
-                eht->directory_.buckets_[index] = NULL;
-
-            bckt_free(eht->directory_.buckets_[i]);
-        }
+void recursive_node_free(Node *node) {
+    if (node != NULL) {
+        recursive_node_free(node->left);
+        recursive_node_free(node->right);
+        node_free(node);
     }
-
-    free(eht->directory_.buckets_);
-    free(eht);
 }
 
+void bst_free(BinarySearchTree *bst) {
+    recursive_node_free(bst->root_);
+}
