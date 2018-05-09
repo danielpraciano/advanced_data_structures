@@ -25,10 +25,11 @@ int8_t inner_insert(InnerNode * const node, size_t order, Entry *entry);
 void leaf_merge();
 void inner_merge();
 
-void leaf_split();
-void inner_split();
+LeafNode* leaf_split(BPlusTree *const bp, LeafNode *node);
+InnerNode* inner_split(BPlusTree *const bp, InnerNode *node, Entry *entry);
 
-void find_way_down();
+void print_all_entries(BPlusTree *bp);
+void print_tree(BPlusTree *bp);
 
 
 BPlusTree* bp_create(size_t order);

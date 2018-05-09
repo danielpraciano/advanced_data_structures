@@ -14,59 +14,72 @@ int main(int argc, char *argv[]) {
 
     printf("%s created...\n", tree_type);
 
-    printf("Inserting data 5 into %s...\n", tree_type);
+    int values[] = { 25, 5, 10, 15, 20, 30, 50, 55, 75, 80, 65, 60, 85, 90, 28, 70, 95 };
 
-    (*(int*) datum) = 5;
+    int i, amount = 16;
 
-    bp_insert(tree, *(int*)datum, datum, sizeof(int));
+    for (i = 0; i < amount; i++) {
+        (*(int*) datum) = values[i];
 
-    printf("Data 5 was inserted into %s...\n", tree_type);
+        bp_insert(tree, *(int*)datum, datum, sizeof(int));
+    }
 
-    printf("Inserting data 4 into %s...\n", tree_type);
+//    printf("Inserting data 5 into %s...\n", tree_type);
 
-    (*(int*) datum) = 4;
+//    (*(int*) datum) = 5;
 
-    bp_insert(tree, *(int*)datum, datum, sizeof(int));
+//    bp_insert(tree, *(int*)datum, datum, sizeof(int));
 
-    printf("Data 4 was inserted into %s...\n", tree_type);
+//    printf("Data 5 was inserted into %s...\n", tree_type);
 
-    printf("Inserting data 3 into %s...\n", tree_type);
+//    printf("Inserting data 4 into %s...\n", tree_type);
 
-    (*(int*) datum) = 3;
+//    (*(int*) datum) = 4;
 
-    bp_insert(tree, *(int*)datum, datum, sizeof(int));
+//    bp_insert(tree, *(int*)datum, datum, sizeof(int));
 
-    printf("Data 3 was inserted into %s...\n", tree_type);
+//    printf("Data 4 was inserted into %s...\n", tree_type);
 
-    printf("Inserting data 2 into %s...\n", tree_type);
+//    printf("Inserting data 3 into %s...\n", tree_type);
 
-    (*(int*) datum) = 2;
+//    (*(int*) datum) = 3;
 
-    bp_insert(tree, *(int*)datum, datum, sizeof(int));
+//    bp_insert(tree, *(int*)datum, datum, sizeof(int));
 
-    printf("Data 2 was inserted into %s...\n", tree_type);
+//    printf("Data 3 was inserted into %s...\n", tree_type);
 
-    printf("Inserting data 1 into %s...\n", tree_type);
+//    printf("Inserting data 2 into %s...\n", tree_type);
 
-    (*(int*) datum) = 1;
+//    (*(int*) datum) = 2;
 
-    bp_insert(tree, *(int*)datum, datum, sizeof(int));
+//    bp_insert(tree, *(int*)datum, datum, sizeof(int));
 
-    printf("Data 1 was inserted into %s...\n", tree_type);
+//    printf("Data 2 was inserted into %s...\n", tree_type);
 
-    printf("Searching data 6 in %s...\n", tree_type);
+//    printf("Inserting data 1 into %s...\n", tree_type);
 
-    if (bp_search(tree, 6, datum))
-        printf("Data 6 wasn't found in %s...\n", tree_type);
-    else
-        printf("Data 6 was found in %s...\n", tree_type);
+//    (*(int*) datum) = 1;
 
-    printf("Searching data 2 in %s...\n", tree_type);
+//    bp_insert(tree, *(int*)datum, datum, sizeof(int));
 
-    if (bp_search(tree, 2, datum))
-        printf("Data 2 wasn't found in %s...\n", tree_type);
-    else
-        printf("Data 2 was found in %s...\n", tree_type);
+//    printf("Data 1 was inserted into %s...\n", tree_type);
+
+//    printf("Searching data 6 in %s...\n", tree_type);
+
+//    if (bp_search(tree, 6, datum))
+//        printf("Data 6 was found in %s...\n", tree_type);
+//    else
+//        printf("Data 6 wasn't found in %s...\n", tree_type);
+
+//    printf("Searching data 2 in %s...\n", tree_type);
+
+//    if (bp_search(tree, 2, datum))
+//        printf("Data 2 was found in %s...\n", tree_type);
+//    else
+//        printf("Data 2 wasn't found in %s...\n", tree_type);
+
+//    print_all_entries(tree);
+    print_tree(tree);
 
 //    printf("Removing data 2 in %s...\n", tree_type);
 
