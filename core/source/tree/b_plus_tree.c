@@ -31,6 +31,7 @@ struct bp_t {
     LeafNode *leftmost_leaf;
 };
 
+
 //void print_tree(BPlusTree *bp) {
 //    void* queue[10000];
 //    int front = 0, rear = 1, i;
@@ -79,6 +80,17 @@ void print_all_entries(BPlusTree *bp) {
     printf("\n");
 }
 
+Entry* entry_create(int64_t key, void *pointer) {
+    Entry *new_entry = (Entry*) calloc(1ul, sizeof(Entry));
+
+    assert(new_entry != NULL);
+
+    new_entry->key_    = key;
+    new_entry->pointer = pointer;
+
+    return new_entry;
+}
+
 LeafNode* leaf_create(InnerNode *const parent, LeafNode *const right, size_t order) {
     LeafNode *new_leaf    = (LeafNode*) malloc(sizeof(LeafNode));
     Entry    *new_entries = (Entry*)    calloc(2 * order, sizeof(Entry));
@@ -93,36 +105,7 @@ LeafNode* leaf_create(InnerNode *const parent, LeafNode *const right, size_t ord
     return new_leaf;
 }
 
-InnerNode* inner_create(InnerNode *const parent, size_t order) {
-    InnerNode *new_inner  = (InnerNode*) malloc(sizeof(InnerNode));
-    Entry    *new_entries = (Entry*)     calloc(2 * order, sizeof(Entry));
-
-    assert(new_inner != NULL && new_entries != NULL);
-
-    new_inner->amount_       = 0;
-    new_inner->parent        = parent;
-    new_inner->first_pointer = NULL;
-    new_inner->entries_      = new_entries;
-
-    return new_inner;
-}
-
-Entry* entry_create(int64_t key, void *pointer) {
-    Entry *new_entry = (Entry*) calloc(1ul, sizeof(Entry));
-
-    assert(new_entry != NULL);
-
-    new_entry->key_    = key;
-    new_entry->pointer = pointer;
-
-    return new_entry;
-}
-
 int8_t leaf_overflow(const LeafNode *const node, size_t order) {
-    return node->amount_ >= 2 * order;
-}
-
-int8_t inner_overflow(const InnerNode *const node, size_t order) {
     return node->amount_ >= 2 * order;
 }
 
@@ -145,6 +128,38 @@ int8_t leaf_insert(LeafNode *const node, size_t order, Entry *entry) {
     return 1;
 }
 
+LeafNode* leaf_split(BPlusTree *const bp, LeafNode *node) {
+    size_t i;
+    LeafNode *new_leaf = leaf_create(node->parent, node->right, bp->order_);
+
+    node->right = new_leaf;
+
+    for (i = bp->order_; i < 2 * bp->order_; i++) {
+        leaf_insert(new_leaf, bp->order_, &node->entries_[i]);
+        node->amount_--;
+    }
+
+    return new_leaf;
+}
+
+InnerNode* inner_create(InnerNode *const parent, size_t order) {
+    InnerNode *new_inner  = (InnerNode*) malloc(sizeof(InnerNode));
+    Entry    *new_entries = (Entry*)     calloc(2 * order, sizeof(Entry));
+
+    assert(new_inner != NULL && new_entries != NULL);
+
+    new_inner->amount_       = 0;
+    new_inner->parent        = parent;
+    new_inner->first_pointer = NULL;
+    new_inner->entries_      = new_entries;
+
+    return new_inner;
+}
+
+int8_t inner_overflow(const InnerNode *const node, size_t order) {
+    return node->amount_ >= 2 * order;
+}
+
 int8_t inner_insert(InnerNode *const node, size_t order, Entry *entry) {
     assert (node->amount_ > 0); // first_child is already ok!
 
@@ -164,36 +179,6 @@ int8_t inner_insert(InnerNode *const node, size_t order, Entry *entry) {
     node->amount_++;
 
     return 1;
-}
-
-
-BPlusTree* bp_create(size_t order) {
-    assert(order > 0);
-
-    BPlusTree *bp = (BPlusTree*) malloc(sizeof(BPlusTree));
-
-    assert(bp != NULL);
-
-    bp->order_        = order;
-    bp->depth_        = 0;
-    bp->root_         = NULL;
-    bp->leftmost_leaf = NULL;
-
-    return bp;
-}
-
-LeafNode* leaf_split(BPlusTree *const bp, LeafNode *node) {
-    size_t i;
-    LeafNode *new_leaf = leaf_create(node->parent, node->right, bp->order_);
-
-    node->right = new_leaf;
-
-    for (i = bp->order_; i < 2 * bp->order_; i++) {
-        leaf_insert(new_leaf, bp->order_, &node->entries_[i]);
-        node->amount_--;
-    }
-
-    return new_leaf;
 }
 
 InnerNode* inner_split(BPlusTree *const bp, InnerNode *node, Entry *entry) {
@@ -300,6 +285,61 @@ void recursive_insert(BPlusTree *const bp, void *node, size_t node_depth, Entry 
     }
 }
 
+LeafNode* _bp_search(InnerNode *root, size_t depth, int64_t key) {
+    InnerNode *next_node = root;
+    size_t level, i;
+
+    if (next_node == NULL)
+        return NULL;
+
+    for (level = 0; level < depth; level++) {
+        assert (next_node != NULL);
+
+        for (i = 0; i < next_node->amount_ && key >= next_node->entries_[i].key_; i++);
+
+        if (i == 0)
+            next_node = (InnerNode*) next_node->first_pointer;
+        else
+            next_node = (InnerNode*) next_node->entries_[i - 1].pointer;
+    }
+
+    return (LeafNode*) next_node;
+}
+
+void _bp_remove(LeafNode *node, int64_t key) {
+    if (node != NULL) {
+        size_t i, j;
+
+        for (i = 0; i < node->amount_ && key != node->entries_[i].key_; i++);
+
+        while (i < node->amount_ && key == node->entries_[i].key_) {
+            for (j = i + 1; j < node->amount_; j++)
+                node->entries_[j - 1] = node->entries_[j];
+
+            if (key != node->entries_[i].key_)
+                i++;
+
+            node->amount_--;
+        }
+    }
+}
+
+
+BPlusTree* bp_create(size_t order) {
+    assert(order > 0);
+
+    BPlusTree *bp = (BPlusTree*) malloc(sizeof(BPlusTree));
+
+    assert(bp != NULL);
+
+    bp->order_        = order;
+    bp->depth_        = 0;
+    bp->root_         = NULL;
+    bp->leftmost_leaf = NULL;
+
+    return bp;
+}
+
 void bp_insert(BPlusTree *const bp, int64_t key, const void *const value, size_t nbytes) {
     assert(bp != NULL);
 
@@ -329,27 +369,6 @@ void bp_insert(BPlusTree *const bp, int64_t key, const void *const value, size_t
     }
 }
 
-LeafNode* _bp_search(InnerNode *root, size_t depth, int64_t key) {
-    InnerNode *next_node = root;
-    size_t level, i;
-
-    if (next_node == NULL)
-        return NULL;
-
-    for (level = 0; level < depth; level++) {
-        assert (next_node != NULL);
-
-        for (i = 0; i < next_node->amount_ && key >= next_node->entries_[i].key_; i++);
-
-        if (i == 0)
-            next_node = (InnerNode*) next_node->first_pointer;
-        else
-            next_node = (InnerNode*) next_node->entries_[i - 1].pointer;
-    }
-
-    return (LeafNode*) next_node;
-}
-
 size_t bp_search(const BPlusTree *const bp, int64_t key, void ***values) {
     assert(bp != NULL);
 
@@ -374,24 +393,6 @@ size_t bp_search(const BPlusTree *const bp, int64_t key, void ***values) {
         (*values)[j] = leaf_node->entries_[i++].pointer;
 
     return n_values;
-}
-
-void _bp_remove(LeafNode *node, int64_t key) {
-    if (node != NULL) {
-        size_t i, j;
-
-        for (i = 0; i < node->amount_ && key != node->entries_[i].key_; i++);
-
-        while (i < node->amount_ && key == node->entries_[i].key_) {
-            for (j = i + 1; j < node->amount_; j++)
-                node->entries_[j - 1] = node->entries_[j];
-
-            if (key != node->entries_[i].key_)
-                i++;
-
-            node->amount_--;
-        }
-    }
 }
 
 void bp_remove(BPlusTree *const bp, int64_t key) {
